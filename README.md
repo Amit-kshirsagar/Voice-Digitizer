@@ -1,5 +1,5 @@
-# Voice-Digitizer
-Originally developed in 2020 as part of a Microprocessors and Interfacing Course; this repository contains the finalized and cleaned version for public release.
+# Voice Digitizer
+Originally developed in 2020 as part of a Microprocessor and Interfacing Course; this repository contains the finalized and cleaned version for public release.
 ## Overview
 The project digitizes a voice signal and reproduces it with user-defined modifications using a microprocessor. The output from the microphone is sampled and digitized by an 8-bit ADC at a rate of 1000 samples per second. The microphone output is pre-processed to provide a signal with an amplitude range of 0–5 V, and the digitized data is stored in RAM for further processing.
 
