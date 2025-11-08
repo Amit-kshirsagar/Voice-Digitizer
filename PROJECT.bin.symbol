@@ -1,0 +1,28 @@
+< THE SYMBOL TABLE >  PROJECT.bin  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+INDEX                    	00400     	2         	VAR       	(NOSEG)   
+TABLE_K                  	00402     	1         	VAR       	(NOSEG)   
+TABLE_D                  	0040E     	1         	VAR       	(NOSEG)   
+ST1                      	00418     	-1        	LABEL     	(NOSEG)   
+START_SWITCH             	00430     	-1        	LABEL     	(NOSEG)   
+INPUTDATA                	0046A     	-1        	LABEL     	(NOSEG)   
+X0                       	00491     	-1        	LABEL     	(NOSEG)   
+X1                       	00495     	-1        	LABEL     	(NOSEG)   
+X2                       	004A4     	-1        	LABEL     	(NOSEG)   
+X3                       	004E5     	-1        	LABEL     	(NOSEG)   
+X_CHECK                  	004EF     	-1        	LABEL     	(NOSEG)   
+X_KEYPRESSED             	004F5     	-1        	LABEL     	(NOSEG)   
+X_DISPLAY                	00503     	-1        	LABEL     	(NOSEG)   
+DELAY20MS                	0050D     	-1        	LABEL     	(NOSEG)   
+XN                       	00510     	-1        	LABEL     	(NOSEG)   
+BACKSPACE                	00514     	-1        	LABEL     	(NOSEG)   
+X_ENTER                  	00518     	-1        	LABEL     	(NOSEG)   
+OUTPUT                   	0053B     	-1        	LABEL     	(NOSEG)   
+DELAY1                   	0053B     	-1        	LABEL     	(NOSEG)   
+I_EOC                    	00563     	-1        	LABEL     	(NOSEG)   
+===================================================================================================
+[ 19-04-2020  --  22:18:20 ] 
+< END >
+ 

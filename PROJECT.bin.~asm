@@ -1,0 +1,341 @@
+#make_bin#
+
+; BIN is plain binary format similar to .com format, but not limited to 1 segment;
+; All values between # are directives, these values are saved into a separate .binf file.
+; Before loading .bin file emulator reads .binf file with the same file name.
+
+; All directives are optional, if you don't need them, delete them.
+
+; set loading address, .bin file will be loaded to this address:
+#LOAD_SEGMENT=0500h#
+#LOAD_OFFSET=0000h#
+
+; set entry point:
+#CS=0500h#    ; same as loading segment
+#IP=0000h#    ; same as loading offset
+
+; set segment registers
+#DS=0500h#    ; same as loading segment
+#ES=0500h#    ; same as loading segment
+
+; set stack
+#SS=0500h#    ; same as loading segment
+#SP=FFFEh#    ; set to top of loading segment
+
+; set general registers (optional)
+#AX=0000h#
+#BX=0000h#
+#CX=0000h#
+#DX=0000h#
+#SI=0000h#
+#DI=0000h#
+#BP=0000h#
+
+; add your code here
+#make_bin#
+
+#LOAD_SEGMENT=FFFFh#
+#LOAD_OFFSET=0000h#
+
+#CS=0000h#
+#IP=0000h#
+
+#DS=0000h#
+#ES=0000h#
+
+#SS=0000h#
+#SP=FFFEh#
+
+#AX=0000h#
+#BX=0000h#
+#CX=0000h#
+#DX=0000h#
+#SI=0000h#
+#DI=0000h#
+#BP=0000h#
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;COMPONENTS USED AND THIER START ADDRESS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;8255A     START ADDRESS IS 00H
+;PORT A PA0 IS CONNECTED TO START SWITCH
+;PORT A PA1 IS CONNECTED TO REPLAY SWITCH
+;PORT A PA2 IS CONNECTED TO REPLAY SWITCH WITH DIFFERENT DELAY
+;PORT A PA3 IS CONNECTED TO OUT FROM INTERVAL TIMER
+;PORT B IS ADC
+;PORT C PC0 IS CONNECTED TO START LED
+;PORT C PC1 IS CONNECTED TO REPLAY LED
+;PORT C PC2 IS CONNECTED TO GATE OF COUNTER 2
+;PORT C PC4 IS CONNECTED TO SOC
+;PORT C PC5 IS CONNECTED TO OE OF ADC
+;PORT C PC6 IS CONNECTED TO ALE
+
+;8255B    START ADDRESS IS 10H
+;PORT A IS IS CONNECTED TO DAC
+;PORT B PB4 TO PB7 IS CONNECTED TO  7SEG LED
+;PORT CL IS OUTPUT -COLUMN I/PS
+;PORT CU IS INPUT  -ROW O/PS
+
+;8254     START ADDRESS IS 20H
+;COUNTER0 FOR GENERATING THE CLOCK OF ADC
+;COUNTER1 FOR GENERATING 2KHz
+;COUNTER2 FOR 1MS DELAY GENERATION
+
+;8259    START ADDRESS IS B0H
+;HANDLING THE INTERRUPTS
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; DESCIPTION OF COMPONENTS FINISHED
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+jmp    st1                                                ;3BYTE
+nop
+dw 0000
+dw 0000
+dw i_eoc
+dw 0000
+db 1012 dup(0)
+
+INDEX dw ?
+
+;KEY PRESSED TABLE
+TABLE_K        db         7DH,0EEH,0EDH,0EBH,0DEH,0DDH    ;0,1,2,3,4,5
+db         0DBH,0BEH,0BDH,0BBH                ;6,7,8,9
+db        07EH,07BH                        ;BACKSPACE AND ENTER
+
+;DISPLAY TABLE
+TABLE_D        db        00H,10H,20H,30H,40H,50H
+db        60H,70H,80H,90H
+
+;MAIN CODE
+
+st1:        cli
+;INITIALIZE ds, es,ss TO START OF RAM
+mov       ax,3000h        ; START OF THE RAM IS ENTERED HERE
+mov       ds,ax
+mov       es,ax
+mov       ss,ax
+mov       sp,0FFFEH
+mov       si,0000
+
+;INITIALIZING 8255A
+mov al,10010010b            ;8255A A-INPUT, B-INPUT,C-OUTPUT
+out 06h,al                    ;CR OF 8255A
+mov al,00000000b
+out 04h,al                    ;OUTPUT OF PORT C IS 00
+
+;CHECKING THE START SWITCH
+start_switch:    mov al,10010010b        ;8255A A-INPUT B-INPUT C-OUTPUT
+out 06h,al                ;CR OF 8255A
+in al,00h                ;INPUT FROM PORT A(START SWITCH)
+and al,00000001b        ;MASKING BITS OTHER THAN PA0
+cmp al,00000001b        ;PA0=1 IF SWITCH IS PRESSED
+jnz start_switch        ;CHECK UNTIL START SWITCH IS PRESSED
+
+;INITIALIZING 8253 TO GENERATE CLOCK FOR ADC
+mov al,00010100b            ;8254 COUNTER 0 MODE 2-CLOCK FOR ADC
+out 26h,al                    ;CR OF 8254
+mov al,04h                    ;COUNT=4 FOR OUT =500KHz AND INPUT CLOCK 2MHz
+out 20h,al                    ;COUNT STORED IN COUNTER 0
+
+mov al,01110100b            ;8254 COUNTER-1 MODE 2,16 BIT COUNT WRITTEN
+out 26h,al                    ;CR OF 8254
+mov al,0FAh                    ;COUNT=00FAH=250 for 2KHz SOUND DELAY, INPUT CLOCK IS 500KHz
+out 22h,al                     ;LSB COUNT IN COUNTER1
+mov al,00h
+out 22h,al                    ;MSB COUNT IN COUNTER1
+
+;INITIALIZING 8255A
+mov al,10010010b            ;8255A A-INPUT, B-INPUT,C-OUTPUT
+out 06h,al                    ;CR OF 8255A
+
+mov si,00h                    ;DS:[SI] WILL POINT TO THE START LOC OF RAM WHERE INPUT DATA WILL BE STORED
+mov cx,6000                    ;COUNT FOR 6000 SAMPLES
+
+;INITIALIZING 8253
+mov al,10010100b            ;8254 COUNTER-2 MODE-2,8BIT IN LSB,DELAY GENERATION COUNTER
+out 26h,al                    ;CR OF 8254
+mov al,02h                    ;COUNT=2 FOR 1ms, AND INPUT CLOCK IS 2KHz
+out 24h,al                    ;STORING COUNT IN COUNTER 2
+
+mov al,00000001b            ;THIS SETS PC0 TO 1 WHICH IS CONNECTED TO THE START LED
+out 06h,al                    ;CR OF 8255A
+
+mov al,00000101b            ;THIS SETS PC2 OF 8255A to 1 WHICH IS CONNECTED TO GATE OF COUNTER 2
+;THIS COUNTER GENERATES 1ms DELAY WHICH IS REQUIRED FOR TAKING THE INPUT FROM ADC
+out 06h,al
+
+inputdata:
+or al,01000000b                ;GIVING ALE
+out 04h,al
+
+or al,00010000b                ;GIVING SOC
+out    04h,al
+
+nop
+nop
+nop
+nop
+
+and al,11101111b            ;MAKING SOC =0
+out 04h,al
+
+and al,10111111b            ;MAKING ALE =0
+out 04h,al
+
+dec cx
+jnz inputdata
+
+mov al,00000000b            ;THIS SETS PC0 TO 0 WHICH IS CONNECTED TO THE START LED i.e DATA READING IS DONE
+out 06h,al                    ;CR OF 8255A
+
+mov al,00000100b            ;THIS SETS PC2 OF 8255A to 0 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO DISABLE THE GATE
+out 06h,al                    ;CR OF 8255A
+
+;CHECKING WHICH BUTTON IS PRESSED ON THE KEYPAD
+;INITIALIZING 8255B
+mov al,10001000b            ;8255B A-OUTPUT, B-OUTPUT CL-OUTPUT CU-INPUT
+out 16h,al                    ;CR OF 8255B
+mov al,00000000b            ;00000000 IS DIPLAYED ON PORT B i.e 0 IS DISPLAYED ON THE 7SEG LED
+out 12h,al                    ;SENT TO PORT B
+
+x0:    mov al,00h                ;00000000 IS SENT TO PORT C
+out 14h,al                ;PORT C
+
+x1: in al,14h                ;INPUT FROM PORT CU
+and al,11110000b        ;MASK LOWER BIT
+cmp al,11110000b        ;CHECK IF ALL INPUTS ARE HIGH
+jnz x1                    ;CHECK UNTIL ALL INPUTS ARE HIGH i.e ALL THE KEYS ARE RELEASED/ NONE OF THEM IS PRESSED
+call delay20ms            ;DELAY OF 20 MS
+mov al,00h                ;00000000 IS DISPLAYED ON PORT C
+out 14h,al                ;PORT C
+
+x2: in al,14h                ;INPUT FROM PORT CU
+and al,0f0h
+cmp al,0f0h
+jz x2                    ;CHECK IF ANY KEY IS PRESSED OR NOT
+call delay20ms            ;CREATE A DELAY
+mov al,00h                ;00 IS DIPLAYED ON PORT C
+out 14h,al
+in al,14h                ;THEN AGAIN CHECK IF THE KEY PRESSED IS A VALID KEY PRESSED OR NOT
+and al,0f0h
+cmp al, 0f0h
+jz x2
+
+mov al,00001110b            ;CHECK FOR KEY PRESSED IN COLUMN 1
+mov bl,al
+out 14h,al                    ;STORED IN PORT C
+in al,14h                    ;INPUT FROM PORT C
+and al,0f0h                    ;MASK LOWER BIT
+cmp al,0f0h                    ;CHECK IF ALL INPUTS ARE HIGH
+jnz x3
+
+mov al,00001101b            ;CHECK FOR KEY PRESSED IN COLUMN 2
+mov bl,al
+out 14h,al                    ;STORED IN PORT C
+in al,14h                    ;INPUT FROM PORT C
+and al,0f0h                    ;MASK LOWER BIT
+cmp al,0f0h                    ;CHECK IF ALL INPUTS ARE HIGH
+jnz x3
+
+mov al,00001011b            ;CHECK FOR KEY PRESSED IN COLUMN 3
+mov bl,al
+out 14h,al                    ;STORED IN PORT C
+in al,14h                    ;INPUT FROM PORT C
+and al,0f0h                    ;MASK LOWER BIT
+cmp al,0f0h                    ;CHECK IF ALL INPUTS ARE HIGH
+jnz x3
+
+x3:    or al,bl                ;LOWER BIT IS STORED IN AL AND UPPER BITS IS 1111
+cmp al,7bh                ;COMPARING WITH ENTER
+jz x_enter
+cmp al,7eh                ;COMPARING WITH BACKSPACE
+jz backspace
+
+x_check:    mov cx,09h        ;MOVE COUNT 9 IN CX
+mov di,00h        ;INITIALIZE DI TO 0
+
+x_keypressed:     cmp al,cs:TABLE_K[di]    ;COMPARE INPUT WITH TABLE_K
+mov INDEX,di            ;STORE DATA IN INDEX
+jz x_display            ;IF KEY IS MATCHED THEN GET THE VALUE FROM TABLE_D
+inc di
+loop x_keypressed
+
+x_display:        lea bx,TABLE_D            ;INITIALIZE BX TO START ADDRESS OF TABLE_D
+mov al,cs:[bx+di]        ;GET THE VALUE FOR INDEX
+out 12h,al                ;DISPLAY ON PORT B 7SEG LED
+jmp x0
+
+;D20 MS FUNCTION
+delay20ms:    mov cx,2220                    ;DELAY GENERATED IS 0.02SEC i.e 2 ms
+xn:     loop xn
+ret
+cli
+
+backspace:     mov al,7dh                    ;DISPLAYING 0 AGAIN ON 7SEG LED ;BACKSPACE
+jmp x_check
+
+x_enter:                    ;IF ENTER IS PRESSED
+
+in al,00h                    ;TAKE INPUT FROM PORT A OF 8255A
+and al,00000010b            ;REPLAY SWITCH
+cmp al,00000010b
+jnz x_enter                    ;CHECK IF PA1=1 IF ITS NOT THEN JUMP TO x_enter
+
+mov si,00h                    ;BX HAS THE STARTING ADDRESS OF THE MEMORY LOCATION WHERE THE RECORDING IS STORED
+mov cx,6000
+
+mov al,10010100b            ;COUNTER 2 IS SELECTED,8BIT IN LSB, MODE 2, BINARY
+out 26h,al                    ;CR FOR 8254
+mov ax,INDEX                ;COUNT=INDEX
+mov dl,02h
+mul dl
+out 24h,al                    ;STORING COUNT=INDEX IN COUNTER 2
+;i.e PRODUCING A DELAY OF THE NUMBER WHICH IS PRESSED
+
+mov al,00000011b            ;THIS SETS PC1 of 8255A to 1. THIS IS ATTCHED TO REPLAY LED
+out 06h,al                    ;CR OF 8255A SET PC1=0
+
+mov al,00000101b            ;THIS SETS PC2 OF 8255A to 1 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO ENABLE THE GATE
+out 06h,al                    ;CR OF 8255A SET PC2=1
+
+output:
+delay1:    in al,00h            ;TAKE INPUT FROM PORT A
+and al,00001000b    ;CHECK UNTIL 4TH INPUT IS HIGH i.e 1
+cmp al,00001000b    ;4th INPUT IS THE OUT FORM 8254
+jnz delay1
+
+
+mov al,ds:[si]
+out 10h,al                    ;SEND THE SIGNAL TO DAC
+inc si
+dec cx
+jnz output                    ;COMPLETE  THIS UNTIL ALL THE 6000 SAMPLES ARE OUTPUTED THROUGH THE SPEAKER
+
+mov al,00000000b            ;SENDING 0 AS THE LAST OUTPUT TO DAC
+out 10h,al
+
+mov al,00000010b            ;THIS SETS PC1 of 8255A to 0. THIS IS ATTCHED TO REPLAY LED
+out 06h,al                    ;CR OF 8255A
+
+mov al,00000100b            ;THIS SETS PC2 OF 8255A to 0 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO DISABLE THE GATE
+out 06h,al                    ;CR OF 8255A
+
+in al,00h                    ;TAKE INPUT FROM PORT A OF 8255A
+and al,00000100b            ;CHECK FOR REPLAY SWITCH WITH DIFFERENT DELAY
+cmp al,00000100b
+jnz x0                        ;CHECK IF PB2=1 IF ITS NOT THEN JUMP TO X0
+
+;START OF INTERRUPT
+i_eoc:
+or al,00100000b                ; MAKING OE=1
+out 04h,al
+in al,02h                    ;TAKE INPUT FROM PORT B
+mov ds:[si],al
+inc si
+iret
+
+HLT           ; halt!
+
+
+
+

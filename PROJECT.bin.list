@@ -1,0 +1,443 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+PROJECT.bin -- emu8086 assembler version: 4.08  
+ 
+[ 19-04-2020  --  22:18:20 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       #make_bin#
+[   2]        :                                       
+[   3]        :                                       ; BIN is plain binary format similar to .com format, but not limited to 1 segment;
+[   4]        :                                       ; All values between # are directives, these values are saved into a separate .binf file.
+[   5]        :                                       ; Before loading .bin file emulator reads .binf file with the same file name.
+[   6]        :                                       
+[   7]        :                                       ; All directives are optional, if you don't need them, delete them.
+[   8]        :                                       
+[   9]        :                                       ; set loading address, .bin file will be loaded to this address:
+[  10]        :                                       #LOAD_SEGMENT=0500h#
+[  11]        :                                       #LOAD_OFFSET=0000h#
+[  12]        :                                       
+[  13]        :                                       ; set entry point:
+[  14]        :                                       #CS=0500h#	; same as loading segment
+[  15]        :                                       #IP=0000h#	; same as loading offset
+[  16]        :                                       
+[  17]        :                                       ; set segment registers
+[  18]        :                                       #DS=0500h#	; same as loading segment
+[  19]        :                                       #ES=0500h#	; same as loading segment
+[  20]        :                                       
+[  21]        :                                       ; set stack
+[  22]        :                                       #SS=0500h#	; same as loading segment
+[  23]        :                                       #SP=FFFEh#	; set to top of loading segment
+[  24]        :                                       
+[  25]        :                                       ; set general registers (optional)
+[  26]        :                                       #AX=0000h#
+[  27]        :                                       #BX=0000h#
+[  28]        :                                       #CX=0000h#
+[  29]        :                                       #DX=0000h#
+[  30]        :                                       #SI=0000h#
+[  31]        :                                       #DI=0000h#
+[  32]        :                                       #BP=0000h#
+[  33]        :                                       
+[  34]        :                                       ; add your code here
+[  35]        :                                       #make_bin#
+[  36]        :                                       
+[  37]        :                                       #LOAD_SEGMENT=FFFFh#
+[  38]        :                                       #LOAD_OFFSET=0000h#
+[  39]        :                                       
+[  40]        :                                       #CS=0000h#
+[  41]        :                                       #IP=0000h#
+[  42]        :                                       
+[  43]        :                                       #DS=0000h#
+[  44]        :                                       #ES=0000h#
+[  45]        :                                       
+[  46]        :                                       #SS=0000h#
+[  47]        :                                       #SP=FFFEh#
+[  48]        :                                       
+[  49]        :                                       #AX=0000h#
+[  50]        :                                       #BX=0000h#
+[  51]        :                                       #CX=0000h#
+[  52]        :                                       #DX=0000h#
+[  53]        :                                       #SI=0000h#
+[  54]        :                                       #DI=0000h#
+[  55]        :                                       #BP=0000h#
+[  56]        :                                       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[  57]        :                                       ;COMPONENTS USED AND THIER START ADDRESS
+[  58]        :                                       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[  59]        :                                       ;8255A 	START ADDRESS IS 00H
+[  60]        :                                       ;PORT A PA0 IS CONNECTED TO START SWITCH
+[  61]        :                                       ;PORT A PA1 IS CONNECTED TO REPLAY SWITCH
+[  62]        :                                       ;PORT A PA2 IS CONNECTED TO REPLAY SWITCH WITH DIFFERENT DELAY
+[  63]        :                                       ;PORT A PA3 IS CONNECTED TO OUT FROM INTERVAL TIMER
+[  64]        :                                       ;PORT B IS ADC
+[  65]        :                                       ;PORT C PC0 IS CONNECTED TO START LED
+[  66]        :                                       ;PORT C PC1 IS CONNECTED TO REPLAY LED
+[  67]        :                                       ;PORT C PC2 IS CONNECTED TO GATE OF COUNTER 2
+[  68]        :                                       ;PORT C PC4 IS CONNECTED TO SOC
+[  69]        :                                       ;PORT C PC5 IS CONNECTED TO OE OF ADC
+[  70]        :                                       ;PORT C PC6 IS CONNECTED TO ALE
+[  71]        :                                       
+[  72]        :                                       ;8255B	START ADDRESS IS 10H
+[  73]        :                                       ;PORT A IS IS CONNECTED TO DAC
+[  74]        :                                       ;PORT B PB4 TO PB7 IS CONNECTED TO  7SEG LED
+[  75]        :                                       ;PORT CL IS OUTPUT -COLUMN I/PS
+[  76]        :                                       ;PORT CU IS INPUT  -ROW O/PS
+[  77]        :                                       
+[  78]        :                                       ;8254 	START ADDRESS IS 20H
+[  79]        :                                       ;COUNTER0 FOR GENERATING THE CLOCK OF ADC
+[  80]        :                                       ;COUNTER1 FOR GENERATING 2KHz
+[  81]        :                                       ;COUNTER2 FOR 1MS DELAY GENERATION
+[  82]        :                                       
+[  83]        :                                       ;8259	START ADDRESS IS B0H
+[  84]        :                                       ;HANDLING THE INTERRUPTS
+[  85]        :                                       
+[  86]        :                                       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[  87]        :                                       ; DESCIPTION OF COMPONENTS FINISHED
+[  88]        :                                       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[  89]        :                                       
+[  90]    0000: E9 15 04                              jmp	st1												;3BYTE
+[  91]    0003: 90                                    nop
+[  92]    0004: 00 00                                 dw 0000
+[  93]    0006: 00 00                                 dw 0000
+[  94]    0008: 63 05                                 dw i_eoc
+[  95]    000A: 00 00                                 dw 0000	
+[  96]    000C: 00 00 00 00 00 00 00 00 00 00 00 00   db 1012 dup(0)
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00                         
+[  97]        :                                       
+[  98]    0400: 00 00                                 INDEX dw ?
+[  99]        :                                       
+[ 100]        :                                       ;KEY PRESSED TABLE
+[ 101]    0402: 7D EE ED EB DE DD                     TABLE_K		db 		7DH,0EEH,0EDH,0EBH,0DEH,0DDH	;0,1,2,3,4,5
+[ 102]    0408: DB BE BD BB                           			db 		0DBH,0BEH,0BDH,0BBH				;6,7,8,9					
+[ 103]    040C: 7E 7B                                 			db		07EH,07BH						;BACKSPACE AND ENTER
+[ 104]        :                                       
+[ 105]        :                                       ;DISPLAY TABLE
+[ 106]    040E: 00 10 20 30 40 50                     TABLE_D		db		00H,10H,20H,30H,40H,50H			
+[ 107]    0414: 60 70 80 90                           			db		60H,70H,80H,90H
+[ 108]        :                                       			
+[ 109]        :                                       ;MAIN CODE
+[ 110]        :                                       
+[ 111]    0418: FA                                    st1:		cli
+[ 112]        :                                       ;INITIALIZE ds, es,ss TO START OF RAM
+[ 113]    0419: B8 00 30                              mov       ax,3000h		; START OF THE RAM IS ENTERED HERE
+[ 114]    041C: 8E D8                                 mov       ds,ax
+[ 115]    041E: 8E C0                                 mov       es,ax
+[ 116]    0420: 8E D0                                 mov       ss,ax
+[ 117]    0422: BC FE FF                              mov       sp,0FFFEH
+[ 118]    0425: BE 00 00                              mov       si,0000
+[ 119]        :                                       
+[ 120]        :                                       ;INITIALIZING 8255A
+[ 121]    0428: B0 92                                 mov al,10010010b			;8255A A-INPUT, B-INPUT,C-OUTPUT
+[ 122]    042A: E6 06                                 out 06h,al					;CR OF 8255A
+[ 123]    042C: B0 00                                 mov al,00000000b							
+[ 124]    042E: E6 04                                 out 04h,al					;OUTPUT OF PORT C IS 00
+[ 125]        :                                       
+[ 126]        :                                       ;CHECKING THE START SWITCH
+[ 127]    0430: B0 92                                 start_switch:	mov al,10010010b		;8255A A-INPUT B-INPUT C-OUTPUT
+[ 128]    0432: E6 06                                 				out 06h,al				;CR OF 8255A
+[ 129]    0434: E4 00                                 				in al,00h				;INPUT FROM PORT A(START SWITCH)
+[ 130]    0436: 24 01                                 				and al,00000001b		;MASKING BITS OTHER THAN PA0
+[ 131]    0438: 3C 01                                 				cmp al,00000001b		;PA0=1 IF SWITCH IS PRESSED
+[ 132]    043A: 75 F4                                 				jnz start_switch		;CHECK UNTIL START SWITCH IS PRESSED
+[ 133]        :                                       				
+[ 134]        :                                       ;INITIALIZING 8253 TO GENERATE CLOCK FOR ADC
+[ 135]    043C: B0 14                                 mov al,00010100b			;8254 COUNTER 0 MODE 2-CLOCK FOR ADC
+[ 136]    043E: E6 26                                 out 26h,al					;CR OF 8254
+[ 137]    0440: B0 04                                 mov al,04h					;COUNT=4 FOR OUT =500KHz AND INPUT CLOCK 2MHz
+[ 138]    0442: E6 20                                 out 20h,al					;COUNT STORED IN COUNTER 0
+[ 139]        :                                       
+[ 140]    0444: B0 74                                 mov al,01110100b			;8254 COUNTER-1 MODE 2,16 BIT COUNT WRITTEN
+[ 141]    0446: E6 26                                 out 26h,al					;CR OF 8254
+[ 142]    0448: B0 FA                                 mov al,0FAh					;COUNT=00FAH=250 for 2KHz SOUND DELAY, INPUT CLOCK IS 500KHz
+[ 143]    044A: E6 22                                 out 22h,al 					;LSB COUNT IN COUNTER1
+[ 144]    044C: B0 00                                 mov al,00h					
+[ 145]    044E: E6 22                                 out 22h,al					;MSB COUNT IN COUNTER1
+[ 146]        :                                       
+[ 147]        :                                       ;INITIALIZING 8255A
+[ 148]    0450: B0 92                                 mov al,10010010b			;8255A A-INPUT, B-INPUT,C-OUTPUT
+[ 149]    0452: E6 06                                 out 06h,al					;CR OF 8255A
+[ 150]        :                                       
+[ 151]    0454: BE 00 00                              mov si,00h					;DS:[SI] WILL POINT TO THE START LOC OF RAM WHERE INPUT DATA WILL BE STORED
+[ 152]    0457: B9 70 17                              mov cx,6000					;COUNT FOR 6000 SAMPLES
+[ 153]        :                                       
+[ 154]        :                                       ;INITIALIZING 8253
+[ 155]    045A: B0 94                                 mov al,10010100b			;8254 COUNTER-2 MODE-2,8BIT IN LSB,DELAY GENERATION COUNTER
+[ 156]    045C: E6 26                                 out 26h,al					;CR OF 8254
+[ 157]    045E: B0 02                                 mov al,02h					;COUNT=2 FOR 1ms, AND INPUT CLOCK IS 2KHz
+[ 158]    0460: E6 24                                 out 24h,al					;STORING COUNT IN COUNTER 2
+[ 159]        :                                       
+[ 160]    0462: B0 01                                 mov al,00000001b			;THIS SETS PC0 TO 1 WHICH IS CONNECTED TO THE START LED
+[ 161]    0464: E6 06                                 out 06h,al					;CR OF 8255A
+[ 162]        :                                       
+[ 163]    0466: B0 05                                 mov al,00000101b			;THIS SETS PC2 OF 8255A to 1 WHICH IS CONNECTED TO GATE OF COUNTER 2
+[ 164]        :                                       	 						;THIS COUNTER GENERATES 1ms DELAY WHICH IS REQUIRED FOR TAKING THE INPUT FROM ADC
+[ 165]    0468: E6 06                                 out 06h,al					
+[ 166]        :                                       
+[ 167]    046A:                                       inputdata:
+[ 168]    046A: 0C 40                                 or al,01000000b				;GIVING ALE
+[ 169]    046C: E6 04                                 out 04h,al
+[ 170]        :                                       		  	
+[ 171]    046E: 0C 10                                 or al,00010000b				;GIVING SOC
+[ 172]    0470: E6 04                                 out	04h,al
+[ 173]        :                                       	
+[ 174]    0472: 90                                    nop
+[ 175]    0473: 90                                    nop
+[ 176]    0474: 90                                    nop
+[ 177]    0475: 90                                    nop
+[ 178]        :                                       
+[ 179]    0476: 24 EF                                 and al,11101111b			;MAKING SOC =0
+[ 180]    0478: E6 04                                 out 04h,al
+[ 181]        :                                       
+[ 182]    047A: 24 BF                                 and al,10111111b			;MAKING ALE =0
+[ 183]    047C: E6 04                                 out 04h,al
+[ 184]        :                                       
+[ 185]    047E: 49                                    dec cx
+[ 186]    047F: 75 E9                                 jnz inputdata
+[ 187]        :                                       
+[ 188]    0481: B0 00                                 mov al,00000000b			;THIS SETS PC0 TO 0 WHICH IS CONNECTED TO THE START LED i.e DATA READING IS DONE
+[ 189]    0483: E6 06                                 out 06h,al					;CR OF 8255A
+[ 190]        :                                       
+[ 191]    0485: B0 04                                 mov al,00000100b			;THIS SETS PC2 OF 8255A to 0 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO DISABLE THE GATE
+[ 192]    0487: E6 06                                 out 06h,al					;CR OF 8255A
+[ 193]        :                                       
+[ 194]        :                                       ;CHECKING WHICH BUTTON IS PRESSED ON THE KEYPAD
+[ 195]        :                                       ;INITIALIZING 8255B
+[ 196]    0489: B0 88                                 mov al,10001000b			;8255B A-OUTPUT, B-OUTPUT CL-OUTPUT CU-INPUT 		
+[ 197]    048B: E6 16                                 out 16h,al					;CR OF 8255B
+[ 198]    048D: B0 00                                 mov al,00000000b			;00000000 IS DIPLAYED ON PORT B i.e 0 IS DISPLAYED ON THE 7SEG LED
+[ 199]    048F: E6 12                                 out 12h,al					;SENT TO PORT B
+[ 200]        :                                       
+[ 201]    0491: B0 00                                 x0:	mov al,00h				;00000000 IS SENT TO PORT C
+[ 202]    0493: E6 14                                 	out 14h,al				;PORT C
+[ 203]        :                                       	
+[ 204]    0495: E4 14                                 x1: in al,14h				;INPUT FROM PORT CU
+[ 205]    0497: 24 F0                                 	and al,11110000b		;MASK LOWER BIT
+[ 206]    0499: 3C F0                                 	cmp al,11110000b		;CHECK IF ALL INPUTS ARE HIGH
+[ 207]    049B: 75 F8                                 	jnz x1					;CHECK UNTIL ALL INPUTS ARE HIGH i.e ALL THE KEYS ARE RELEASED/ NONE OF THEM IS PRESSED
+[ 208]    049D: E8 6D 00                              	call delay20ms			;DELAY OF 20 MS
+[ 209]    04A0: B0 00                                 	mov al,00h				;00000000 IS DISPLAYED ON PORT C
+[ 210]    04A2: E6 14                                 	out 14h,al				;PORT C
+[ 211]        :                                       	
+[ 212]    04A4: E4 14                                 x2: in al,14h				;INPUT FROM PORT CU
+[ 213]    04A6: 24 F0                                 	and al,0f0h				
+[ 214]    04A8: 3C F0                                 	cmp al,0f0h
+[ 215]    04AA: 74 F8                                 	jz x2					;CHECK IF ANY KEY IS PRESSED OR NOT
+[ 216]    04AC: E8 5E 00                              	call delay20ms			;CREATE A DELAY
+[ 217]    04AF: B0 00                                 	mov al,00h				;00 IS DIPLAYED ON PORT C
+[ 218]    04B1: E6 14                                 	out 14h,al
+[ 219]    04B3: E4 14                                 	in al,14h				;THEN AGAIN CHECK IF THE KEY PRESSED IS A VALID KEY PRESSED OR NOT
+[ 220]    04B5: 24 F0                                 	and al,0f0h
+[ 221]    04B7: 3C F0                                 	cmp al, 0f0h
+[ 222]    04B9: 74 E9                                 	jz x2
+[ 223]        :                                       
+[ 224]    04BB: B0 0E                                 mov al,00001110b			;CHECK FOR KEY PRESSED IN COLUMN 1
+[ 225]    04BD: 8A D8                                 mov bl,al
+[ 226]    04BF: E6 14                                 out 14h,al					;STORED IN PORT C
+[ 227]    04C1: E4 14                                 in al,14h					;INPUT FROM PORT C
+[ 228]    04C3: 24 F0                                 and al,0f0h					;MASK LOWER BIT
+[ 229]    04C5: 3C F0                                 cmp al,0f0h					;CHECK IF ALL INPUTS ARE HIGH
+[ 230]    04C7: 75 1C                                 jnz x3						
+[ 231]        :                                       
+[ 232]    04C9: B0 0D                                 mov al,00001101b			;CHECK FOR KEY PRESSED IN COLUMN 2		
+[ 233]    04CB: 8A D8                                 mov bl,al
+[ 234]    04CD: E6 14                                 out 14h,al					;STORED IN PORT C
+[ 235]    04CF: E4 14                                 in al,14h					;INPUT FROM PORT C
+[ 236]    04D1: 24 F0                                 and al,0f0h					;MASK LOWER BIT
+[ 237]    04D3: 3C F0                                 cmp al,0f0h					;CHECK IF ALL INPUTS ARE HIGH
+[ 238]    04D5: 75 0E                                 jnz x3	
+[ 239]        :                                       					
+[ 240]    04D7: B0 0B                                 mov al,00001011b			;CHECK FOR KEY PRESSED IN COLUMN 3
+[ 241]    04D9: 8A D8                                 mov bl,al
+[ 242]    04DB: E6 14                                 out 14h,al					;STORED IN PORT C
+[ 243]    04DD: E4 14                                 in al,14h					;INPUT FROM PORT C
+[ 244]    04DF: 24 F0                                 and al,0f0h					;MASK LOWER BIT
+[ 245]    04E1: 3C F0                                 cmp al,0f0h					;CHECK IF ALL INPUTS ARE HIGH
+[ 246]    04E3: 75 00                                 jnz x3
+[ 247]        :                                       
+[ 248]    04E5: 0A C3                                 x3:	or al,bl				;LOWER BIT IS STORED IN AL AND UPPER BITS IS 1111
+[ 249]    04E7: 3C 7B                                 	cmp al,7bh				;COMPARING WITH ENTER
+[ 250]    04E9: 74 2D                                 	jz x_enter
+[ 251]    04EB: 3C 7E                                 	cmp al,7eh				;COMPARING WITH BACKSPACE
+[ 252]    04ED: 74 25                                 	jz backspace
+[ 253]        :                                       	
+[ 254]    04EF: B9 09 00                              x_check:	mov cx,09h		;MOVE COUNT 9 IN CX
+[ 255]    04F2: BF 00 00                              			mov di,00h		;INITIALIZE DI TO 0
+[ 256]        :                                       			
+[ 257]    04F5: 2E 3A 85 02 04                        x_keypressed: 	cmp al,cs:TABLE_K[di]	;COMPARE INPUT WITH TABLE_K
+[ 258]    04FA: 89 3E 00 04                           				mov INDEX,di			;STORE DATA IN INDEX
+[ 259]    04FE: 74 03                                 				jz x_display			;IF KEY IS MATCHED THEN GET THE VALUE FROM TABLE_D
+[ 260]    0500: 47                                    				inc di
+[ 261]    0501: E2 F2                                 				loop x_keypressed
+[ 262]        :                                       				
+[ 263]    0503: BB 0E 04                              x_display:	    lea bx,TABLE_D			;INITIALIZE BX TO START ADDRESS OF TABLE_D
+[ 264]    0506: 2E 8A 01                              				mov al,cs:[bx+di]		;GET THE VALUE FOR INDEX
+[ 265]    0509: E6 12                                 				out 12h,al				;DISPLAY ON PORT B 7SEG LED
+[ 266]    050B: EB 84                                 				jmp x0
+[ 267]        :                                       				
+[ 268]        :                                       ;D20 MS FUNCTION
+[ 269]    050D: B9 AC 08                              delay20ms:	mov cx,2220					;DELAY GENERATED IS 0.02SEC i.e 2 ms
+[ 270]    0510: E2 FE                                 	xn: 	loop xn
+[ 271]    0512: C3                                    			ret
+[ 272]    0513: FA                                    cli
+[ 273]        :                                       
+[ 274]    0514: B0 7D                                 backspace: 	mov al,7dh					;DISPLAYING 0 AGAIN ON 7SEG LED ;BACKSPACE
+[ 275]    0516: EB D7                                 			jmp x_check
+[ 276]        :                                       
+[ 277]    0518:                                       x_enter:					;IF ENTER IS PRESSED
+[ 278]        :                                       
+[ 279]    0518: E4 00                                 in al,00h					;TAKE INPUT FROM PORT A OF 8255A			 		
+[ 280]    051A: 24 02                                 and al,00000010b			;REPLAY SWITCH
+[ 281]    051C: 3C 02                                 cmp al,00000010b
+[ 282]    051E: 75 F8                                 jnz x_enter					;CHECK IF PA1=1 IF ITS NOT THEN JUMP TO x_enter
+[ 283]        :                                       
+[ 284]    0520: BE 00 00                              mov si,00h					;BX HAS THE STARTING ADDRESS OF THE MEMORY LOCATION WHERE THE RECORDING IS STORED
+[ 285]    0523: B9 70 17                              mov cx,6000
+[ 286]        :                                       
+[ 287]    0526: B0 94                                 mov al,10010100b			;COUNTER 2 IS SELECTED,8BIT IN LSB, MODE 2, BINARY
+[ 288]    0528: E6 26                                 out 26h,al					;CR FOR 8254
+[ 289]    052A: A1 00 04                              mov ax,INDEX				;COUNT=INDEX
+[ 290]    052D: B2 02                                 mov dl,02h
+[ 291]    052F: F6 E2                                 mul dl
+[ 292]    0531: E6 24                                 out 24h,al					;STORING COUNT=INDEX IN COUNTER 2
+[ 293]        :                                       							;i.e PRODUCING A DELAY OF THE NUMBER WHICH IS PRESSED
+[ 294]        :                                       							
+[ 295]    0533: B0 03                                 mov al,00000011b			;THIS SETS PC1 of 8255A to 1. THIS IS ATTCHED TO REPLAY LED
+[ 296]    0535: E6 06                                 out 06h,al					;CR OF 8255A SET PC1=0
+[ 297]        :                                       
+[ 298]    0537: B0 05                                 mov al,00000101b			;THIS SETS PC2 OF 8255A to 1 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO ENABLE THE GATE
+[ 299]    0539: E6 06                                 out 06h,al					;CR OF 8255A SET PC2=1
+[ 300]        :                                       				
+[ 301]    053B:                                       output:
+[ 302]    053B: E4 00                                 delay1:	in al,00h			;TAKE INPUT FROM PORT A 					
+[ 303]    053D: 24 08                                 		and al,00001000b	;CHECK UNTIL 4TH INPUT IS HIGH i.e 1
+[ 304]    053F: 3C 08                                 		cmp al,00001000b	;4th INPUT IS THE OUT FORM 8254
+[ 305]    0541: 75 F8                                 		jnz delay1			
+[ 306]        :                                       			
+[ 307]        :                                       
+[ 308]    0543: 3E 8A 04                              mov al,ds:[si]
+[ 309]    0546: E6 10                                 out 10h,al					;SEND THE SIGNAL TO DAC
+[ 310]    0548: 46                                    inc si
+[ 311]    0549: 49                                    dec cx
+[ 312]    054A: 75 EF                                 jnz output					;COMPLETE  THIS UNTIL ALL THE 6000 SAMPLES ARE OUTPUTED THROUGH THE SPEAKER
+[ 313]        :                                       
+[ 314]    054C: B0 00                                 mov al,00000000b			;SENDING 0 AS THE LAST OUTPUT TO DAC
+[ 315]    054E: E6 10                                 out 10h,al 					
+[ 316]        :                                       
+[ 317]    0550: B0 02                                 mov al,00000010b			;THIS SETS PC1 of 8255A to 0. THIS IS ATTCHED TO REPLAY LED
+[ 318]    0552: E6 06                                 out 06h,al					;CR OF 8255A
+[ 319]        :                                       
+[ 320]    0554: B0 04                                 mov al,00000100b			;THIS SETS PC2 OF 8255A to 0 WHICH IS CONNECTED TO GATE OF COUNTER 2, TO DISABLE THE GATE
+[ 321]    0556: E6 06                                 out 06h,al					;CR OF 8255A
+[ 322]        :                                       
+[ 323]    0558: E4 00                                 in al,00h					;TAKE INPUT FROM PORT A OF 8255A
+[ 324]    055A: 24 04                                 and al,00000100b			;CHECK FOR REPLAY SWITCH WITH DIFFERENT DELAY 		
+[ 325]    055C: 3C 04                                 cmp al,00000100b
+[ 326]    055E: 74 03 E9 2E FF                        jnz x0						;CHECK IF PB2=1 IF ITS NOT THEN JUMP TO X0
+[ 327]        :                                       						
+[ 328]        :                                       ;START OF INTERRUPT
+[ 329]    0563:                                       i_eoc:
+[ 330]    0563: 0C 20                                 or al,00100000b				; MAKING OE=1
+[ 331]    0565: E6 04                                 out 04h,al
+[ 332]    0567: E4 02                                 in al,02h					;TAKE INPUT FROM PORT B
+[ 333]    0569: 3E 88 04                              mov ds:[si],al
+[ 334]    056C: 46                                    inc si
+[ 335]    056D: CF                                    iret
+[ 336]        :                                       
+[ 337]    056E: F4                                    HLT           ; halt!
+[ 338]        :                                       
+[ 339]        :                                       
+[ 340]        :                                       
+[ 341]        :                                       
+ 
+===================================================================================================
+ 
+
+
+
+
+===================================================================================================
